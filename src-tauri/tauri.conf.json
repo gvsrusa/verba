@@ -12,13 +12,13 @@
   "app": {
     "windows": [
       {
-        "title": "Wispr Flow Clone",
-        "width": 400,
-        "height": 600,
-        "resizable": false,
+        "title": "Verba",
+        "width": 1000,
+        "height": 800,
+        "resizable": true,
         "decorations": false,
-        "transparent": true,
-        "alwaysOnTop": true
+        "transparent": false,
+        "alwaysOnTop": false
       }
     ],
     "security": {

@@ -3,16 +3,26 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import "./App.css";
 
+// Components
+import Sidebar from "./components/Sidebar";
+import MainContent from "./components/MainContent";
+import SettingsModal from "./components/SettingsModal";
+
 function App() {
+  // State
+  const [activeTab, setActiveTab] = useState("notes");
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  
+  // Logic State (from original App)
   const [apiKey, setApiKey] = useState("");
   const [provider, setProvider] = useState("groq");
   const [model, setModel] = useState("whisper-large-v3");
   const [status, setStatus] = useState<"idle" | "recording" | "processing">("idle");
-  const [log, setLog] = useState("");
+  const [transcriptionLog, setTranscriptionLog] = useState<string[]>([]);
+  // Store full log here, maybe persist later
 
   // Save settings to backend whenever they change
   useEffect(() => {
-    // Debounce or just save on change
     const save = async () => {
       try {
         await invoke("save_settings", { 
@@ -29,17 +39,19 @@ function App() {
   useEffect(() => {
     const unlistenStarted = listen("recording-started", () => {
       setStatus("recording");
-      setLog("Recording started via Hotkey...");
     });
 
     const unlistenComplete = listen("transcription-complete", (event) => {
+      console.log("Transcription Event Received:", event);
       setStatus("idle");
-      setLog(`Transcribed: ${event.payload}`);
+      // Add to log
+      setTranscriptionLog(prev => [event.payload as string, ...prev]);
     });
 
     const unlistenError = listen("transcription-error", (event) => {
+      console.error("Transcription Error Event:", event);
       setStatus("idle");
-      setLog(`Error: ${event.payload}`);
+      setTranscriptionLog(prev => [`Error: ${event.payload}`, ...prev]);
     });
 
     return () => {
@@ -49,97 +61,55 @@ function App() {
     };
   }, []);
 
-  const handleProviderChange = (newProvider: string) => {
-    setProvider(newProvider);
-    if (newProvider === "groq") setModel("whisper-large-v3");
-    else if (newProvider === "grok") setModel("grok-beta"); 
-    else if (newProvider === "openrouter") setModel("openai/whisper-large-v3");
-    else if (newProvider === "gemini") setModel("google/gemini-flash-1.5");
-  };
-
   async function toggleRecording() {
     if (status === "idle") {
       try {
-        setLog("Starting recording...");
         await invoke("start_recording");
-        // Status update handled by event listener or manually here
         setStatus("recording");
       } catch (error) {
         console.error(error);
-        setLog(`Error: ${error}`);
       }
     } else if (status === "recording") {
       try {
-        setLog("Stopping & Transcribing...");
         setStatus("processing");
-        // We now call stop_and_transcribe without args, as it uses stored settings
         const text = await invoke("stop_and_transcribe");
-        setLog(`Transcribed: ${text}`);
+        setTranscriptionLog(prev => [text as string, ...prev]);
         setStatus("idle");
       } catch (error) {
         console.error(error);
-        setLog(`Error: ${error}`);
         setStatus("idle");
       }
     }
   }
 
   return (
-    <>
+    <div style={{ display: 'flex', width: '100%', height: '100%' }}>
       <div data-tauri-drag-region className="titlebar"></div>
-      <div className="container">
-        <h1>Wispr Flow Clone</h1>
       
-      <div className="settings-panel">
-        <label>
-          Provider
-          <select value={provider} onChange={(e) => handleProviderChange(e.target.value)}>
-            <option value="groq">Groq (Fastest)</option>
-            <option value="openrouter">OpenRouter</option>
-            <option value="grok">Grok (xAI)</option>
-            <option value="gemini">Gemini (via OpenRouter)</option>
-          </select>
-        </label>
+      <Sidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        onOpenSettings={() => setIsSettingsOpen(true)}
+      />
+      
+      <MainContent 
+        activeTab={activeTab} 
+        isRecording={status === "recording"}
+        onToggleRecording={toggleRecording}
+        transcriptionLog={transcriptionLog}
+      />
 
-        <label>
-          API Key
-          <input 
-            type="password" 
-            placeholder="sk-..." 
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-          />
-        </label>
-
-        <label>
-          Model ID
-          <input 
-            type="text" 
-            placeholder="e.g. google/gemini-pro-1.5" 
-            value={model}
-            onChange={(e) => setModel(e.target.value)}
-          />
-        </label>
-      </div>
-
-      <div className="control-panel">
-        <button 
-          className={`record-btn ${status}`}
-          onClick={toggleRecording}
-          disabled={status === "processing"}
-        >
-          {status === "idle" ? "Start Recording" : status === "recording" ? "Stop" : "Processing..."}
-        </button>
-      </div>
-
-      <div className="log-output">
-        <p>{log}</p>
-        <p style={{ marginTop: '10px', fontSize: '0.7em', color: '#666' }}>
-          Global Hotkey: <b>Option + Space</b> (Alt + Space)
-        </p>
-      </div>
-      </div>
-    </>
+      <SettingsModal 
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        provider={provider}
+        setProvider={setProvider}
+        apiKey={apiKey}
+        setApiKey={setApiKey}
+        model={model}
+        setModel={setModel}
+      />
+    </div>
   );
 }
 
