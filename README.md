@@ -149,6 +149,39 @@ Verba needs two permissions to work:
 
 ---
 
+## ⌨️ Customizing Hotkeys
+
+You can change the hotkey in **Settings → General → Keyboard shortcuts**.
+
+### Supported Modifier Keys
+
+| Platform | Available Modifiers |
+|----------|---------------------|
+| macOS | Option, Control, Shift, Command |
+| Windows | Ctrl, Shift, Alt, Win |
+
+### Supported Keys
+
+- **Letters**: A-Z
+- **Numbers**: 0-9  
+- **Function keys**: F1-F12
+- **Space**
+
+### Example Combinations
+
+- `Ctrl + Shift + Space`
+- `Option + Shift + R`
+- `Cmd + Space`
+- `Alt + Shift + D`
+
+### Notes
+
+- **Restart required**: After changing the hotkey, restart the app for changes to take effect
+- **fn key (Mac)**: The fn key cannot be used as a modifier — it's handled by macOS before reaching apps
+- **Conflicts**: Avoid hotkeys that conflict with system shortcuts (e.g., `Alt + Space` opens window menu on Windows)
+
+---
+
 ## 🚀 Development Guide
 
 ### Prerequisites
