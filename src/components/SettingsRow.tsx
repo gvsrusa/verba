@@ -2,7 +2,7 @@ import React from 'react';
 
 interface SettingsRowProps {
   title: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   learnMoreLink?: string;
   action?: React.ReactNode;
 }

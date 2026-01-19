@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import SettingsRow from './SettingsRow';
 
 interface ChangeButtonProps {
@@ -27,17 +27,45 @@ const ChangeButton: React.FC<ChangeButtonProps> = ({ onClick }) => (
 );
 
 const GeneralSettings: React.FC = () => {
-  const handleKeyboardShortcutsChange = () => {
-    alert('Keyboard shortcuts configuration coming soon!');
+  const [shortcut, setShortcut] = useState('Hold fn and speak');
+  const [isRecordingShortcut, setIsRecordingShortcut] = useState(false);
+
+  const [microphone, setMicrophone] = useState('Built-in mic (recommended)');
+  const [isSelectingMic, setIsSelectingMic] = useState(false);
+
+  const [language, setLanguage] = useState('Auto-detect (99 languages)');
+  const [isSelectingLanguage, setIsSelectingLanguage] = useState(false);
+
+  // Mock data
+  const microphones = ['Built-in mic (recommended)', 'AirPods Pro', 'External USB Microphone'];
+  const languages = ['Auto-detect (99 languages)', 'English (US)', 'English (UK)', 'Spanish', 'French', 'German', 'Chinese', 'Japanese'];
+
+  // Handle Shortcut Recording
+  const handleShortcutClick = () => {
+    setIsRecordingShortcut(true);
+    // In a real app, we would add a window event listener here
   };
 
-  const handleMicrophoneChange = () => {
-    alert('Microphone selection coming soon!');
+  const handleShortcutKeyDown = (e: React.KeyboardEvent) => {
+    if (isRecordingShortcut) {
+        e.preventDefault();
+        // Simple mock of capturing keys
+        let keys = [];
+        if (e.metaKey) keys.push('Cmd');
+        if (e.ctrlKey) keys.push('Ctrl');
+        if (e.altKey) keys.push('Opt');
+        if (e.shiftKey) keys.push('Shift');
+        if (e.key && !['Meta', 'Control', 'Alt', 'Shift'].includes(e.key)) {
+            keys.push(e.key.toUpperCase());
+        }
+        
+        if (keys.length > 0) {
+            setShortcut(keys.join(' + '));
+            setIsRecordingShortcut(false);
+        }
+    }
   };
 
-  const handleLanguagesChange = () => {
-    alert('Language selection coming soon!');
-  };
 
   return (
     <div style={{ padding: '30px 0' }}>
@@ -52,21 +80,88 @@ const GeneralSettings: React.FC = () => {
 
       <SettingsRow
         title="Keyboard shortcuts"
-        subtitle="Hold fn and speak."
+        subtitle={
+            isRecordingShortcut ? (
+                <input 
+                    autoFocus
+                    value="Press keys..."
+                    readOnly
+                    onKeyDown={handleShortcutKeyDown}
+                    onBlur={() => setIsRecordingShortcut(false)}
+                    style={{
+                        border: '1px solid #007aff',
+                        borderRadius: '4px',
+                        padding: '2px 8px',
+                        outline: 'none',
+                        color: '#007aff',
+                        fontSize: '0.85rem'
+                    }}
+                />
+            ) : shortcut
+        }
         learnMoreLink="#"
-        action={<ChangeButton onClick={handleKeyboardShortcutsChange} />}
+        action={
+            <ChangeButton 
+                onClick={handleShortcutClick} 
+            />
+        }
       />
 
       <SettingsRow
         title="Microphone"
-        subtitle="Built-in mic (recommended)"
-        action={<ChangeButton onClick={handleMicrophoneChange} />}
+        subtitle={
+            isSelectingMic ? (
+                <select
+                    autoFocus
+                    value={microphone}
+                    onChange={(e) => {
+                        setMicrophone(e.target.value);
+                        setIsSelectingMic(false);
+                    }}
+                    onBlur={() => setIsSelectingMic(false)}
+                    style={{
+                        fontSize: '0.85rem',
+                        padding: '2px 4px',
+                        borderRadius: '4px',
+                        borderColor: '#ccc'
+                    }}
+                >
+                    {microphones.map(mic => (
+                        <option key={mic} value={mic}>{mic}</option>
+                    ))}
+                </select>
+            ) : microphone
+        }
+        action={<ChangeButton onClick={() => setIsSelectingMic(true)} />}
       />
 
       <SettingsRow
         title="Languages"
-        subtitle="Auto-detect (99 languages)"
-        action={<ChangeButton onClick={handleLanguagesChange} />}
+        subtitle={
+            isSelectingLanguage ? (
+                <select
+                     autoFocus
+                     value={language}
+                     onChange={(e) => {
+                         setLanguage(e.target.value);
+                         setIsSelectingLanguage(false);
+                     }}
+                     onBlur={() => setIsSelectingLanguage(false)}
+                     style={{
+                         fontSize: '0.85rem',
+                         padding: '2px 4px',
+                         borderRadius: '4px',
+                         borderColor: '#ccc',
+                         maxWidth: '200px'
+                     }}
+                >
+                    {languages.map(lang => (
+                        <option key={lang} value={lang}>{lang}</option>
+                    ))}
+                </select>
+            ) : language
+        }
+        action={<ChangeButton onClick={() => setIsSelectingLanguage(true)} />}
       />
     </div>
   );
