@@ -18,13 +18,29 @@ Built with **Rust (Tauri)** and **React**, Verba lets you dictate text into *any
 
 ## 📥 Quick Start (Download)
 
-1. Download the latest `Verba.app` from the [Releases Page](https://github.com/gvsrusa/whisper-flow/releases)
-2. Drag **Verba** to your **Applications** folder
-3. Open the app (Right-Click → Open if macOS blocks it)
-4. Grant **Accessibility** and **Microphone** permissions when prompted
-5. Configure your API key in Settings → Providers
+1. Download the latest `Verba_x.x.x_macos.zip` from the [Releases Page](https://github.com/gvsrusa/whisper-flow/releases)
+2. Extract the zip file
+3. Move **Verba.app** to your **Applications** folder
+4. **Important**: Remove the quarantine attribute (see below)
+5. Open the app and grant permissions
+6. Configure your API key in Settings → Providers
 
-> **Note**: Since this app is not signed by Apple, you may need to Right-Click → Open on first launch.
+### ⚠️ Fixing "Verba is damaged and can't be opened" Error
+
+macOS blocks unsigned apps downloaded from the internet. To fix this:
+
+1. Open **Terminal** (Applications → Utilities → Terminal)
+2. Run this command:
+   ```bash
+   xattr -cr /Applications/Verba.app
+   ```
+   Or if the app is in Downloads:
+   ```bash
+   xattr -cr ~/Downloads/Verba.app
+   ```
+3. Now open Verba normally — it should work!
+
+> **Why this happens**: macOS adds a "quarantine" flag to downloaded files. The `xattr -cr` command removes this flag, allowing the app to run.
 
 ---
 
