@@ -3,8 +3,60 @@ mod audio;
 
 use api_client::transcribe_openai_compatible;
 use audio::AudioRecorder;
+use std::fs;
+use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Manager, State};
+
+/// Get the path to the settings file in the user's config directory
+fn get_settings_path() -> PathBuf {
+    let config_dir = dirs::config_dir()
+        .unwrap_or_else(|| std::env::temp_dir())
+        .join("whisper-flow");
+
+    // Create directory if it doesn't exist
+    let _ = fs::create_dir_all(&config_dir);
+
+    config_dir.join("settings.json")
+}
+
+/// Load settings from disk
+fn load_settings_from_disk() -> AppSettings {
+    let path = get_settings_path();
+
+    if path.exists() {
+        match fs::read_to_string(&path) {
+            Ok(content) => match serde_json::from_str(&content) {
+                Ok(settings) => {
+                    println!("Settings loaded from {:?}", path);
+                    return settings;
+                }
+                Err(e) => eprintln!("Failed to parse settings: {}", e),
+            },
+            Err(e) => eprintln!("Failed to read settings file: {}", e),
+        }
+    }
+
+    // Return default settings if file doesn't exist or can't be parsed
+    AppSettings {
+        api_key: "".into(),
+        provider: "groq".into(),
+        model: "whisper-large-v3".into(),
+    }
+}
+
+/// Save settings to disk
+fn save_settings_to_disk(settings: &AppSettings) -> Result<(), String> {
+    let path = get_settings_path();
+
+    let content = serde_json::to_string_pretty(settings)
+        .map_err(|e| format!("Failed to serialize settings: {}", e))?;
+
+    fs::write(&path, content).map_err(|e| format!("Failed to write settings file: {}", e))?;
+
+    println!("Settings saved to {:?}", path);
+    Ok(())
+}
 
 use enigo::{Enigo, Keyboard, Settings};
 use global_hotkey::{
@@ -28,12 +80,26 @@ pub struct AppState {
 
 #[tauri::command]
 fn save_settings(state: State<AppState>, settings: AppSettings) -> Result<(), String> {
+    // Save to memory
     let mut s = state
         .settings
         .lock()
         .map_err(|_| "Failed to lock settings")?;
-    *s = settings;
+    *s = settings.clone();
+
+    // Persist to disk
+    save_settings_to_disk(&settings)?;
+
     Ok(())
+}
+
+#[tauri::command]
+fn load_settings(state: State<AppState>) -> Result<AppSettings, String> {
+    let s = state
+        .settings
+        .lock()
+        .map_err(|_| "Failed to lock settings")?;
+    Ok(s.clone())
 }
 
 #[tauri::command]
@@ -167,11 +233,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .manage(AppState {
             recorder: Mutex::new(AudioRecorder::new()),
-            settings: Mutex::new(AppSettings {
-                api_key: "".into(),
-                provider: "openrouter".into(),
-                model: "openai/whisper-large-v3".into(),
-            }),
+            settings: Mutex::new(load_settings_from_disk()),
             is_recording: Mutex::new(false),
         })
         .setup(|app| {
@@ -209,7 +271,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             start_recording,
             stop_and_transcribe,
-            save_settings
+            save_settings,
+            load_settings
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

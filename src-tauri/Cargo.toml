@@ -31,4 +31,5 @@ global-hotkey = "0.5" # Using a known stable version for global hotkeys
 tokio = { version = "1", features = ["full"] }
 chrono = "0.4"
 base64 = "0.22"
+dirs = "5"
 
