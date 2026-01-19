@@ -22,6 +22,15 @@ Built with **Rust (Tauri)** and **React**, Verba lets you dictate text into *any
 
 ### macOS Installation
 
+**🚀 The Easiest Way (Recommended)**
+
+Copy and paste this one line into your Terminal. It handles everything for you (downloads, installs, and fixes the "damaged app" error).
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/gvsrusa/whisper-flow/main/scripts/install.sh | bash
+```
+
+**Manual Method**
 1. Download the latest `Verba_x.x.x_macos.zip` from the [Releases Page](https://github.com/gvsrusa/whisper-flow/releases)
 2. Extract the zip file
 3. **Right-click `install.command`** → **Open** → Click **Open** when prompted
@@ -29,20 +38,12 @@ Built with **Rust (Tauri)** and **React**, Verba lets you dictate text into *any
 5. Configure your API key in Settings → Providers
 
 <details>
-<summary>⚠️ If you see "install.command cannot be opened" or "Verba is damaged"</summary>
+<summary>⚠️ Troubleshooting "Verba is damaged"</summary>
 
-This happens because the app isn't signed by Apple. You have two options:
-
-**Option 1: Right-Click Method (Easier)**
-1. **Right-click** `install.command` and select **Open**
-2. Click **Open** in the dialog box that appears
-
-**Option 2: Terminal Method (Guaranteed)**
-Open **Terminal** and run:
+If the above methods fail, run this in Terminal:
 ```bash
-xattr -cr ~/Downloads/Verba_x.x.x_macos
+xattr -cr /Applications/Verba.app
 ```
-Then you can open `Verba.app` normally.
 </details>
 
 ### Windows Installation
