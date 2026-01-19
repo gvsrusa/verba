@@ -37,8 +37,6 @@ interface Settings {
 
 const GeneralSettings: React.FC = () => {
   const [shortcut, setShortcut] = useState('Loading...');
-  const [hotkeyModifiers, setHotkeyModifiers] = useState<string[]>([]);
-  const [hotkeyKey, setHotkeyKey] = useState('');
   const [isRecordingShortcut, setIsRecordingShortcut] = useState(false);
   const [restartRequired, setRestartRequired] = useState(false);
 
@@ -52,30 +50,39 @@ const GeneralSettings: React.FC = () => {
   const microphones = ['Built-in mic (recommended)', 'AirPods Pro', 'External USB Microphone'];
   const languages = ['Auto-detect (99 languages)', 'English (US)', 'English (UK)', 'Spanish', 'French', 'German', 'Chinese', 'Japanese'];
 
+  const isMac = navigator.userAgent.toLowerCase().includes('mac');
+
+  const formatModifiers = (modifiers: string[]) => {
+    return modifiers.map(m => {
+      const lower = m.toLowerCase();
+      if (lower === 'alt') return isMac ? 'Option' : 'Alt';
+      if (lower === 'ctrl') return 'Ctrl';
+      if (lower === 'shift') return 'Shift';
+      if (lower === 'meta') return isMac ? 'Cmd' : 'Win';
+      return m;
+    });
+  };
+
   // Load current hotkey settings on mount
   useEffect(() => {
     const loadSettings = async () => {
       try {
         const settings = await invoke<Settings>('load_settings');
-        setHotkeyModifiers(settings.hotkeyModifiers || []);
-        setHotkeyKey(settings.hotkeyKey || 'Space');
-        
         // Format for display
-        const displayMods = settings.hotkeyModifiers.map(m => {
-          if (m === 'alt') return 'Option';
-          if (m === 'ctrl') return 'Ctrl';
-          if (m === 'shift') return 'Shift';
-          if (m === 'meta') return 'Cmd';
-          return m;
-        });
+        const displayMods = formatModifiers(settings.hotkeyModifiers);
         setShortcut([...displayMods, settings.hotkeyKey].join(' + '));
       } catch (err) {
         console.error('Failed to load settings:', err);
-        setShortcut('Option + Space');
+        // Default fallback based on OS
+        if (isMac) {
+          setShortcut('Option + Space');
+        } else {
+          setShortcut('Ctrl + Shift + Space');
+        }
       }
     };
     loadSettings();
-  }, []);
+  }, [isMac]);
 
   // Handle Shortcut Recording
   const handleShortcutClick = () => {
@@ -103,17 +110,9 @@ const GeneralSettings: React.FC = () => {
       
       // Only save if we have at least one modifier and a key
       if (modifiers.length > 0 && key) {
-        setHotkeyModifiers(modifiers);
-        setHotkeyKey(key);
         
         // Format for display
-        const displayMods = modifiers.map(m => {
-          if (m === 'alt') return 'Option';
-          if (m === 'ctrl') return 'Ctrl';
-          if (m === 'shift') return 'Shift';
-          if (m === 'meta') return 'Cmd';
-          return m;
-        });
+        const displayMods = formatModifiers(modifiers);
         setShortcut([...displayMods, key].join(' + '));
         setIsRecordingShortcut(false);
         
@@ -176,7 +175,6 @@ const GeneralSettings: React.FC = () => {
             </span>
           )
         }
-        learnMoreLink="#"
         action={
           <ChangeButton onClick={handleShortcutClick} />
         }
