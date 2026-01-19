@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { X, User, Sliders, Monitor, Globe, Hash } from 'lucide-react';
 import ProviderSettings from './ProviderSettings';
+import GeneralSettings from './GeneralSettings';
+import SystemSettings from './SystemSettings';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -33,10 +35,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                 setModel={setModel} 
             />;
         case 'general':
+            return <GeneralSettings />;
+        case 'system':
+            return <SystemSettings />;
+        case 'vibe':
             return (
-                <div style={{ padding: '20px' }}>
-                    <h3>General Settings</h3>
-                    <p style={{ color: '#666' }}>General settings like Keyboard shortcuts would go here.</p>
+                <div style={{ padding: '30px 20px' }}>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '20px', color: '#1a1a1c' }}>
+                        Vibe coding
+                    </h2>
+                    <p style={{ color: '#6e6e73' }}>
+                        Vibe coding settings will be available in a future update.
+                    </p>
                 </div>
             );
         default:
@@ -112,11 +122,13 @@ const SettingTab = ({ id, label, icon: Icon, active, onClick }: any) => (
             padding: '8px 10px',
             marginBottom: '4px',
             borderRadius: '6px',
+            border: 'none',
             backgroundColor: active === id ? '#e8e8ea' : 'transparent',
             color: '#1a1a1c',
             fontWeight: active === id ? 600 : 500,
             textAlign: 'left',
-            fontSize: '0.9rem'
+            fontSize: '0.9rem',
+            cursor: 'pointer'
         }}
     >
         <Icon size={16} style={{ marginRight: '10px', opacity: 0.7 }} />
